@@ -117,7 +117,7 @@ class ResNet(nn.Module):
             # 1x1x512 -> (512,) or (2048,)
 
             self.fc = nn.Linear(512*self.block.mul,self.num_classes)
-        elif num_classes == 10: # Cifar-10
+        else: # num_clsses = 10 Cifar-10
             # Conv3x3 + bn +relu
             # 2n (Residual Block n개, 16 -> 16)
             # 2n (Residual Block n개, 16 -> 32)
@@ -167,7 +167,7 @@ class ResNet(nn.Module):
             x = self.avgpool(x)
             x = self.flatten(x)
             x = self.fc(x)
-        elif self.num_classes == 10:
+        else: # num_classes = 10
             x = self.conv1(x)
             x = self.bn1(x)
             x = self.relu(x)
@@ -177,8 +177,7 @@ class ResNet(nn.Module):
             x = self.avgpool(x)
             x = self.flatten(x)
             x = self.fc(x)
-        out = F.softmax(x)
-        return out
+        return x
 
 # ImageNet
 def ResNet18():

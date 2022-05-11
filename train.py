@@ -65,7 +65,7 @@ step_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optim,
 # 저장된 최근의 체크 포인트 불러오기
 net, optim, start_epoch = load(ckpt_dir,net,optim)
 # Function
-fn_tonumpy = lambda x:x.to('cpu').detach().numpy().transpose(0,2,3,1)
+fn_tonumpy = lambda x:x.to('cpu').detach().numpy().transpose(1,2,0)
 def fn_denorm(x,mean=(0.4914,0.4822,0.4465),std=(0.2023,0.1994,0.2010)):
     for i in range(x.shape[0]):
         for j in range(3):
@@ -95,24 +95,24 @@ for epoch in range(start_epoch + 1,num_epoch+1):
         inputs = inputs.to(device) # To GPU
         labels = labels.to(device) # To GPU
         outputs= net(inputs) # Forward Propagation
-        _, preds = torch.max(outputs.data,1)
         # Backpropagation
         optim.zero_grad()
-        loss = loss_fn(preds,labels)
-        loss.backword()
+        loss = loss_fn(outputs,labels)
+        loss.backward()
         optim.step()
         step_lr_scheduler.step() # Scheduler Increase Step
         # Metric
         loss_arr.append(loss.item())
+        _, preds = torch.max(outputs.data,1)
         acc_arr.append((preds==labels).sum().item()/labels.size(0))
         # Print
         print(f"TRAIN: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_train:04d} | LOSS {np.mean(loss_arr):.4f}")
         # Tensorboard
         p = np.random.randint(batch_size)
         inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
-        labels_ = classes(labels[p])
-        preds_ = classes(preds[p])
-        writer_train.add_image('Input',inputs_,num_batch_train*(epoch-1)+batch,dataformats='NHWC')
+        labels_ = classes[labels[p]]
+        preds_ = classes[preds[p]]
+        writer_train.add_image('Input',inputs_,num_batch_train*(epoch-1)+batch,dataformats='HWC')
         writer_train.add_text('Prediction',preds_,num_batch_train*(epoch-1)+batch)
         writer_train.add_text('Target',labels_,num_batch_train*(epoch-1)+batch)
     writer_train.add_scalar('Loss',np.mean(loss_arr),epoch)
@@ -138,9 +138,9 @@ for epoch in range(start_epoch + 1,num_epoch+1):
             # Tensorboard
             p = np.random.randint(batch_size)
             inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
-            labels_ = classes(labels[p])
-            preds_ = classes(preds[p])
-            writer_val.add_image('Input',inputs_,num_batch_val*(epoch-1)+batch,dataformats='NHWC')
+            labels_ = classes[labels[p]]
+            preds_ = classes[preds[p]]
+            writer_val.add_image('Input',inputs_,num_batch_val*(epoch-1)+batch,dataformats='HWC')
             writer_val.add_text('Prediction',preds_,num_batch_val*(epoch-1)+batch)
             writer_val.add_text('Target',labels_,num_batch_val*(epoch-1)+batch)
         writer_val.add_scalar('Loss',np.mean(loss_arr),epoch)
