@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 import torch.functional as F
 from torch.utils.tensorboard import SummaryWriter
 
-from model import ResNet50,Resnet56,ResNet152,ResNet110,load,save
+from model import ResNet50,ResNet56,ResNet152,ResNet110,load,save
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(root_dir,'data')
@@ -92,17 +92,16 @@ for epoch in range(start_epoch + 1,num_epoch+1):
     acc_arr = []
     
     for batch, (inputs,labels) in enumerate(train_loader,start=1):
-        step_lr_scheduler.step() # Scheduler Increase Step
-        
         inputs = inputs.to(device) # To GPU
         labels = labels.to(device) # To GPU
         outputs= net(inputs) # Forward Propagation
-        _, preds = torch,max(outputs.data,1)
+        _, preds = torch.max(outputs.data,1)
         # Backpropagation
         optim.zero_grad()
         loss = loss_fn(preds,labels)
         loss.backword()
         optim.step()
+        step_lr_scheduler.step() # Scheduler Increase Step
         # Metric
         loss_arr.append(loss.item())
         acc_arr.append((preds==labels).sum().item()/labels.size(0))
