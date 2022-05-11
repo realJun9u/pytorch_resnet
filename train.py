@@ -108,7 +108,7 @@ for epoch in range(start_epoch + 1,num_epoch+1):
         # Print
         print(f"TRAIN: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_train:04d} | LOSS {np.mean(loss_arr):.4f} | ACCURACY {np.mean(acc_arr)*100:.2f}%")
         # Tensorboard
-        p = np.random.randint(batch_size)
+        p = np.random.randint(inputs.size(0))
         inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
         labels_ = classes[labels[p]]
         preds_ = classes[preds[p]]
@@ -136,7 +136,7 @@ for epoch in range(start_epoch + 1,num_epoch+1):
             # Print
             print(f"VALID: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_val:04d} | LOSS {np.mean(loss_arr):.4f} | ACCURACY {np.mean(acc_arr)*100:.2f}%")
             # Tensorboard
-            p = np.random.randint(batch_size)
+            p = np.random.randint(inputs.size(0))
             inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
             labels_ = classes[labels[p]]
             preds_ = classes[preds[p]]
