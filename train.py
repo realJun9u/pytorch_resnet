@@ -106,7 +106,7 @@ for epoch in range(start_epoch + 1,num_epoch+1):
         _, preds = torch.max(outputs.data,1)
         acc_arr.append((preds==labels).sum().item()/labels.size(0))
         # Print
-        print(f"TRAIN: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_train:04d} | LOSS {np.mean(loss_arr):.4f} | ACCURACY {np.mean(acc_arr):.2f}")
+        print(f"TRAIN: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_train:04d} | LOSS {np.mean(loss_arr):.4f} | ACCURACY {np.mean(acc_arr)*100:.2f}%")
         # Tensorboard
         p = np.random.randint(batch_size)
         inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
@@ -134,7 +134,7 @@ for epoch in range(start_epoch + 1,num_epoch+1):
             _, preds = torch.max(outputs.data,1)
             acc_arr.append((preds==labels).sum().item()/labels.size(0))
             # Print
-            print(f"VALID: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_val:04d} | LOSS {np.mean(loss_arr):.4f} | ACCURACY {np.mean(acc_arr):.2f}")
+            print(f"VALID: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_val:04d} | LOSS {np.mean(loss_arr):.4f} | ACCURACY {np.mean(acc_arr)*100:.2f}%")
             # Tensorboard
             p = np.random.randint(batch_size)
             inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
