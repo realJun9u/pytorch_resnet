@@ -124,7 +124,7 @@ for epoch in range(start_epoch + 1,num_epoch+1):
         labels_ = classes[labels[p]]
         preds_ = classes[preds[p]]
         fig = make_figure(inputs_,preds_,labels_)
-        writer_train.add_figure('Pred vs Target',inputs_,global_step)
+        writer_train.add_figure('Pred vs Target',fig,global_step)
         writer_train.add_scalar('Loss',np.mean(loss_arr),global_step)
         writer_train.add_scalar('Error',100-np.mean(acc_arr),global_step)
         writer_train.add_scalar('Accuracy',np.mean(acc_arr),global_step)
@@ -151,7 +151,7 @@ for epoch in range(start_epoch + 1,num_epoch+1):
             inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
             labels_ = classes[labels[p]]
             preds_ = classes[preds[p]]
-        writer_val.add_figure('Pred vs Target',inputs_,global_step)
+        writer_val.add_figure('Pred vs Target',fig,global_step)
         writer_val.add_scalar('Loss',np.mean(loss_arr),global_step)
         writer_val.add_scalar('Error',100-np.mean(acc_arr),global_step)
         writer_val.add_scalar('Accuracy',np.mean(acc_arr),global_step)
