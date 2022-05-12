@@ -1,6 +1,7 @@
 import os
 import torch
 import numpy as np
+import matplotlib.pyplot as plt
 from torch.utils.data import random_split
 from torchvision import datasets
 from torchvision import transforms
@@ -14,9 +15,10 @@ data_dir = os.path.join(root_dir,'data')
 ckpt_dir = os.path.join(root_dir,'checkpoint')
 log_dir = os.path.join(root_dir,'logs')
 
-batch_size = 128
 train_size = 45000 # 45k / 5k
 val_size = 5000
+batch_size = 128
+num_iteration = 64000
 
 # Prepare DataLoader
 train_transform = transforms.Compose([
@@ -61,14 +63,19 @@ decay_epoch = [32000,48000]
 step_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optim,
                                                          decay_epoch,
                                                          gamma=0.1)
-# 저장된 최근의 체크 포인트 불러오기
-net, optim, start_epoch = load(ckpt_dir,net,optim)
 # Function
 fn_tonumpy = lambda x:x.to('cpu').detach().numpy().transpose(1,2,0)
 def fn_denorm(x,mean=(0.4914,0.4822,0.4465),std=(0.2023,0.1994,0.2010)):
     for i in range(x.shape[0]):
         x[i] = (x[i]* std[i]) + mean[i]
     return x
+def make_figure(inputs_,preds_,labels_):
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.imshow(inputs_)
+    ax.set_title(f"Prediction : {preds_} Label : {labels_}",size=15)
+    return fig
+
 # Parameters
 num_data_train = len(train_dataset)
 num_data_val = len(val_dataset)
@@ -77,13 +84,16 @@ num_batch_train = int(np.ceil(num_data_train/batch_size))
 num_batch_val = int(np.ceil(num_data_val/batch_size))
 # num_batch_test = int(np.ceil(num_data_test/batch_size))
 
-num_epoch =  int(np.ceil(64000 /num_batch_train))# 64000 iteration
+num_epoch =  int(np.ceil(num_iteration /num_batch_train))# 64000 iteration
 
 # Tensorboard
 writer_train = SummaryWriter(log_dir=os.path.join(log_dir,'train'))
 writer_val = SummaryWriter(log_dir=os.path.join(log_dir,'val'))
 # writer_test = SummaryWriter(log_dir=os.path.join(log_dir,'test'))
 
+# # 저장된 최근의 체크 포인트 불러오기
+# net, optim, start_epoch = load(ckpt_dir,net,optim)
+start_epoch=0
 global_step = 0
 for epoch in range(start_epoch + 1,num_epoch+1):
     # Train
@@ -105,20 +115,19 @@ for epoch in range(start_epoch + 1,num_epoch+1):
         # Metric
         loss_arr.append(loss.item())
         _, preds = torch.max(outputs.data,1)
-        acc_arr.append((preds==labels).sum().item()/labels.size(0))
+        acc_arr.append(((preds==labels).sum().item()/labels.size(0))*100)
         # Print
-        print(f"TRAIN: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_train:04d} | LOSS {np.mean(loss_arr):.4f} | ACCURACY {np.mean(acc_arr)*100:.2f}%")
+        print(f"TRAIN: STEP {global_step:05d} / {num_epoch * num_batch_train:05d} | EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_train:04d} | LOSS {np.mean(loss_arr):.4f} | ACC {np.mean(acc_arr):.2f}%")
         # Tensorboard
         p = np.random.randint(inputs.size(0))
         inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
         labels_ = classes[labels[p]]
         preds_ = classes[preds[p]]
-        writer_train.add_image('Input',inputs_,global_step=global_step,dataformats='HWC')
-        writer_train.add_text('Prediction',preds_,global_step=global_step)
-        writer_train.add_text('Target',labels_,global_step=global_step)
-    writer_train.add_scalar('Loss',np.mean(loss_arr),epoch)
-    writer_train.add_scalar('Error',1-np.mean(acc_arr),epoch)
-    writer_train.add_scalar('Accuracy',np.mean(acc_arr),epoch)
+        fig = make_figure(inputs_,preds_,labels_)
+        writer_train.add_figure('Pred vs Target',inputs_,global_step)
+        writer_train.add_scalar('Loss',np.mean(loss_arr),global_step)
+        writer_train.add_scalar('Error',100-np.mean(acc_arr),global_step)
+        writer_train.add_scalar('Accuracy',np.mean(acc_arr),global_step)
     # Validation
     with torch.no_grad():
         net.eval()
@@ -134,19 +143,17 @@ for epoch in range(start_epoch + 1,num_epoch+1):
             # Metric
             loss_arr.append(loss.item())
             _, preds = torch.max(outputs.data,1)
-            acc_arr.append((preds==labels).sum().item()/labels.size(0))
+            acc_arr.append(((preds==labels).sum().item()/labels.size(0))*100)
             # Print
-            print(f"VALID: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_val:04d} | LOSS {np.mean(loss_arr):.4f} | ACCURACY {np.mean(acc_arr)*100:.2f}%")
+            print(f"VALID: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_val:04d} | LOSS {np.mean(loss_arr):.4f} | ACC {np.mean(acc_arr):.2f}%")
             # Tensorboard
             p = np.random.randint(inputs.size(0))
             inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
             labels_ = classes[labels[p]]
             preds_ = classes[preds[p]]
-            writer_val.add_image('Input',inputs_,global_step=global_step+batch,dataformats='HWC')
-            writer_val.add_text('Prediction',preds_,global_step=global_step+batch)
-            writer_val.add_text('Target',labels_,global_step=global_step+batch)
+        writer_val.add_figure('Pred vs Target',inputs_,global_step)
         writer_val.add_scalar('Loss',np.mean(loss_arr),global_step)
-        writer_train.add_scalar('Error',1-np.mean(acc_arr),global_step)
+        writer_val.add_scalar('Error',100-np.mean(acc_arr),global_step)
         writer_val.add_scalar('Accuracy',np.mean(acc_arr),global_step)
     
     # 10k iteration 마다 저장
