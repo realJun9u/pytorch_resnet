@@ -113,10 +113,11 @@ for epoch in range(start_epoch + 1,num_epoch+1):
         inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
         labels_ = classes[labels[p]]
         preds_ = classes[preds[p]]
-        writer_train.add_image('Input',inputs_,global_step=global_step+batch,dataformats='HWC')
-        writer_train.add_text('Prediction',preds_,global_step=global_step+batch)
-        writer_train.add_text('Target',labels_,global_step=global_step+batch)
+        writer_train.add_image('Input',inputs_,global_step=global_step,dataformats='HWC')
+        writer_train.add_text('Prediction',preds_,global_step=global_step)
+        writer_train.add_text('Target',labels_,global_step=global_step)
     writer_train.add_scalar('Loss',np.mean(loss_arr),epoch)
+    writer_train.add_scalar('Error',1-np.mean(acc_arr),epoch)
     writer_train.add_scalar('Accuracy',np.mean(acc_arr),epoch)
     # Validation
     with torch.no_grad():
@@ -144,12 +145,13 @@ for epoch in range(start_epoch + 1,num_epoch+1):
             writer_val.add_image('Input',inputs_,global_step=global_step+batch,dataformats='HWC')
             writer_val.add_text('Prediction',preds_,global_step=global_step+batch)
             writer_val.add_text('Target',labels_,global_step=global_step+batch)
-        writer_val.add_scalar('Loss',np.mean(loss_arr),epoch)
-        writer_val.add_scalar('Accuracy',np.mean(acc_arr),epoch)
+        writer_val.add_scalar('Loss',np.mean(loss_arr),global_step)
+        writer_train.add_scalar('Error',1-np.mean(acc_arr),global_step)
+        writer_val.add_scalar('Accuracy',np.mean(acc_arr),global_step)
     
     # 10k iteration 마다 저장
     if global_step % 10000 == 0:
-        save(ckpt_dir,net,optim,epoch)
+        save(ckpt_dir,net,optim,global_step)
 
 writer_train.close()
 writer_val.close()
