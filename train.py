@@ -86,6 +86,7 @@ writer_train = SummaryWriter(log_dir=os.path.join(log_dir,'train'))
 writer_val = SummaryWriter(log_dir=os.path.join(log_dir,'val'))
 # writer_test = SummaryWriter(log_dir=os.path.join(log_dir,'test'))
 
+global_step = 0
 for epoch in range(start_epoch + 1,num_epoch+1):
     # Train
     net.train()
@@ -93,6 +94,7 @@ for epoch in range(start_epoch + 1,num_epoch+1):
     acc_arr = []
     
     for batch, (inputs,labels) in enumerate(train_loader,start=1):
+        global_step += 1
         inputs = inputs.to(device) # To GPU
         labels = labels.to(device) # To GPU
         outputs= net(inputs) # Forward Propagation
@@ -147,8 +149,8 @@ for epoch in range(start_epoch + 1,num_epoch+1):
         writer_val.add_scalar('Loss',np.mean(loss_arr),epoch)
         writer_val.add_scalar('Accuracy',np.mean(acc_arr),epoch)
     
-    # epoch 500 마다 저장
-    if epoch % 500 == 0:
+    # 10k iteration 마다 저장
+    if global_step % 10000 == 0:
         save(ckpt_dir,net,optim,epoch)
 
 writer_train.close()
