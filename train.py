@@ -5,7 +5,6 @@ from torch.utils.data import random_split
 from torchvision import datasets
 from torchvision import transforms
 from torch.utils.data import DataLoader
-import torch.functional as F
 from torch.utils.tensorboard import SummaryWriter
 
 from model import ResNet50,ResNet56,ResNet152,ResNet110,load,save
@@ -14,8 +13,8 @@ root_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(root_dir,'data')
 ckpt_dir = os.path.join(root_dir,'checkpoint')
 log_dir = os.path.join(root_dir,'logs')
+
 batch_size = 128
-num_epoch = 64000
 train_size = 45000 # 45k / 5k
 val_size = 5000
 
@@ -79,6 +78,8 @@ num_data_val = len(val_dataset)
 num_batch_train = int(np.ceil(num_data_train/batch_size))
 num_batch_val = int(np.ceil(num_data_val/batch_size))
 # num_batch_test = int(np.ceil(num_data_test/batch_size))
+
+num_epoch =  int(np.ceil(64000 /num_batch_train))# 64000 iteration
 
 # Tensorboard
 writer_train = SummaryWriter(log_dir=os.path.join(log_dir,'train'))
