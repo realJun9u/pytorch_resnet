@@ -67,10 +67,8 @@ net, optim, start_epoch = load(ckpt_dir,net,optim)
 fn_tonumpy = lambda x:x.to('cpu').detach().numpy().transpose(1,2,0)
 def fn_denorm(x,mean=(0.4914,0.4822,0.4465),std=(0.2023,0.1994,0.2010)):
     for i in range(x.shape[0]):
-        for j in range(3):
-            x[i][j] = (x[i][j] * std[j]) + mean[j]
+        x[i] = (x[i]* std[i]) + mean[i]
     return x
-
 # Parameters
 num_data_train = len(train_dataset)
 num_data_val = len(val_dataset)
@@ -115,9 +113,9 @@ for epoch in range(start_epoch + 1,num_epoch+1):
         inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
         labels_ = classes[labels[p]]
         preds_ = classes[preds[p]]
-        writer_train.add_image('Input',inputs_,num_batch_train*(epoch-1)+batch,dataformats='HWC')
-        writer_train.add_text('Prediction',preds_,num_batch_train*(epoch-1)+batch)
-        writer_train.add_text('Target',labels_,num_batch_train*(epoch-1)+batch)
+        writer_train.add_image('Input',inputs_,global_step=global_step+batch,dataformats='HWC')
+        writer_train.add_text('Prediction',preds_,global_step=global_step+batch)
+        writer_train.add_text('Target',labels_,global_step=global_step+batch)
     writer_train.add_scalar('Loss',np.mean(loss_arr),epoch)
     writer_train.add_scalar('Accuracy',np.mean(acc_arr),epoch)
     # Validation
@@ -143,9 +141,9 @@ for epoch in range(start_epoch + 1,num_epoch+1):
             inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
             labels_ = classes[labels[p]]
             preds_ = classes[preds[p]]
-            writer_val.add_image('Input',inputs_,num_batch_val*(epoch-1)+batch,dataformats='HWC')
-            writer_val.add_text('Prediction',preds_,num_batch_val*(epoch-1)+batch)
-            writer_val.add_text('Target',labels_,num_batch_val*(epoch-1)+batch)
+            writer_val.add_image('Input',inputs_,global_step=global_step+batch,dataformats='HWC')
+            writer_val.add_text('Prediction',preds_,global_step=global_step+batch)
+            writer_val.add_text('Target',labels_,global_step=global_step+batch)
         writer_val.add_scalar('Loss',np.mean(loss_arr),epoch)
         writer_val.add_scalar('Accuracy',np.mean(acc_arr),epoch)
     
