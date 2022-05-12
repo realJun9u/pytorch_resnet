@@ -72,7 +72,7 @@ def fn_denorm(x,mean=(0.4914,0.4822,0.4465),std=(0.2023,0.1994,0.2010)):
 def make_figure(inputs_,preds_,labels_):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.imshow(inputs_)
+    ax.imshow((inputs_*255).astype(np.uint8))
     ax.set_title(f"Prediction : {preds_} Label : {labels_}",size=15)
     return fig
 
@@ -117,7 +117,7 @@ for epoch in range(start_epoch + 1,num_epoch+1):
         _, preds = torch.max(outputs.data,1)
         acc_arr.append(((preds==labels).sum().item()/labels.size(0))*100)
         # Print
-        print(f"TRAIN: STEP {global_step:05d} / {num_epoch * num_batch_train:05d} | EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_train:04d} | LOSS {np.mean(loss_arr):.4f} | ACC {np.mean(acc_arr):.2f}%")
+        print(f"TRAIN: STEP {global_step:05d}/{num_epoch * num_batch_train:05d} | EPOCH {epoch:04d}/{num_epoch:04d} | BATCH {batch:04d}/{num_batch_train:04d} | LOSS {np.mean(loss_arr):.4f} | ACC {np.mean(acc_arr):.2f}%")
         # Tensorboard
         p = np.random.randint(inputs.size(0))
         inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
@@ -145,7 +145,7 @@ for epoch in range(start_epoch + 1,num_epoch+1):
             _, preds = torch.max(outputs.data,1)
             acc_arr.append(((preds==labels).sum().item()/labels.size(0))*100)
             # Print
-            print(f"VALID: EPOCH {epoch:04d} / {num_epoch:04d} | BATCH {batch:04d} / {num_batch_val:04d} | LOSS {np.mean(loss_arr):.4f} | ACC {np.mean(acc_arr):.2f}%")
+            print(f"VALID: EPOCH {epoch:04d}/{num_epoch:04d} | BATCH {batch:04d}/{num_batch_val:04d} | LOSS {np.mean(loss_arr):.4f} | ACC {np.mean(acc_arr):.2f}%")
             # Tensorboard
             p = np.random.randint(inputs.size(0))
             inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
