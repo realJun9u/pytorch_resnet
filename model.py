@@ -1,7 +1,6 @@
 import os
 import torch
 from torch import nn
-from torch.nn import functional as F
 
 class BasicBlock(nn.Module): # 얕은 구조에서 사용. Resnet 18, 34
     mul = 1 # Block 내에서 출력 채널 수 증가 X
@@ -83,7 +82,7 @@ class ResNet(nn.Module):
         self.block = block
         self.num_blocks = num_blocks
         self.num_classes = num_classes
-        if self.num_classes == 1000:
+        if len(num_blocks) == 4 or self.num_classes == 1000 :
             self.inplanes = 64
             # ImageNet : 224x224x3 -> 112x112x64
             # Cifar-10 : 32x32x3 -> 16x16x64
@@ -134,13 +133,13 @@ class ResNet(nn.Module):
             self.relu = nn.ReLU()
 
             self.layer1 = self.make_layers(16,num_blocks[0],stride=1)
-            # 32x32x16 -> 16x16x16
+            # 32x32x16 -> 32x32x16
             self.layer2 = self.make_layers(32,num_blocks[1],stride=2)
-            # 16x16x16 -> 8x8x32
+            # 32x32x16 -> 16x16x32
             self.layer3 = self.make_layers(64,num_blocks[2],stride=2)
-            # 8x8x32 -> 4x4x64
+            # 16x16x32 -> 8x8x64
             self.avgpool = nn.AdaptiveAvgPool2d(1)
-            # 4x4x64 -> 1x1x64
+            # 8x8x64 -> 1x1x64
             self.flatten = nn.Flatten()
             # 1x1x64 -> (64,)
 
