@@ -14,5 +14,6 @@
 python train.py (default = Resnet50)
 ```
 #### 학습 결과
+ResNet - 50 
 ![image](https://user-images.githubusercontent.com/78460105/168414333-9c0bca99-aca6-43da-a853-4e7f9f81b15f.png)
 ![image](https://user-images.githubusercontent.com/78460105/168414308-12ddbc72-9d31-4acb-be8f-d5ca88bf4d35.png)
