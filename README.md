@@ -10,10 +10,8 @@
 ![image](https://user-images.githubusercontent.com/78460105/167866380-80e75dcf-1490-4777-b1b3-0935f836e3e2.png)
 ![image](https://user-images.githubusercontent.com/78460105/167866509-998c606a-933a-4cea-8d23-613042e28796.png)
 
+### Implementation
 ```
-python train.py (default = Resnet50)
+python main.py --layers {'18','34','50','101','152','20','32','44','56','110'}
 ```
 #### 학습 결과
-ResNet - 50 
-![image](https://user-images.githubusercontent.com/78460105/168414333-9c0bca99-aca6-43da-a853-4e7f9f81b15f.png)
-![image](https://user-images.githubusercontent.com/78460105/168414308-12ddbc72-9d31-4acb-be8f-d5ca88bf4d35.png)
