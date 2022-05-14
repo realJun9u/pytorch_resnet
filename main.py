@@ -2,8 +2,10 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
+from sympy import total_degree
 import torch
 from time import time
+import datetime
 from torch.utils.data import random_split
 from torchvision import datasets
 from torchvision import transforms
@@ -26,6 +28,7 @@ batch_size = args.batch_size
 train_size = 45000 # 45k / 5k
 val_size = 5000
 num_iteration = 64000
+num_workers = 4
 root_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(root_dir,'data')
 
@@ -45,7 +48,7 @@ test_transform = transforms.Compose([
 train_dataset0 = datasets.CIFAR10(root='./data',
                                 train=True,
                                 download=True,
-                                transform=train_transform)
+                                transform=train_transform,)
 
 train_dataset, val_dataset = random_split(train_dataset0,[train_size,val_size])
 
@@ -55,9 +58,9 @@ test_dataset = datasets.CIFAR10(root='./data',
                                 transform=test_transform)
 
 classes = train_dataset0.classes
-train_loader = DataLoader(train_dataset,batch_size=batch_size,shuffle=True)
-val_loader = DataLoader(val_dataset,batch_size=batch_size,shuffle=True)
-test_loader = DataLoader(test_dataset,batch_size=batch_size,shuffle=False)
+train_loader = DataLoader(train_dataset,batch_size=batch_size,shuffle=True,num_workers=num_workers)
+val_loader = DataLoader(val_dataset,batch_size=batch_size,shuffle=True,num_workers=num_workers)
+test_loader = DataLoader(test_dataset,batch_size=batch_size,shuffle=False,num_workers=num_workers)
 
 # Parameters
 num_data_train = len(train_dataset)
@@ -106,6 +109,11 @@ for layer in layers:
         for i in range(x.shape[0]):
             x[i] = (x[i]* std[i]) + mean[i]
         return x
+    def fn_diff_index(preds,labels):
+        for i in range(len(preds)):
+            if preds[i] != labels[i]:
+                return i
+        return None
     def make_figure(inputs_,preds_,labels_):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
@@ -136,15 +144,16 @@ for layer in layers:
             # Print
             print(f"TRAIN: STEP {global_step:05d} / {total_step:05d} | LOSS {np.mean(loss_arr):.4f} | ACC {np.mean(acc_arr):.2f}%")
             # Tensorboard
-            p = np.random.randint(inputs.size(0))
-            inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
-            labels_ = classes[labels[p]]
-            preds_ = classes[preds[p]]
-            fig = make_figure(inputs_,preds_,labels_)
-            writer_train.add_figure('Pred vs Target',fig,global_step)
-            writer_train.add_scalar('Loss',np.mean(loss_arr),global_step)
-            writer_train.add_scalar('Error',100-np.mean(acc_arr),global_step)
-            writer_train.add_scalar('Accuracy',np.mean(acc_arr),global_step)
+            p = fn_diff_index(preds,labels)
+            if p is not None:
+                inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
+                labels_ = classes[labels[p]]
+                preds_ = classes[preds[p]]
+                fig = make_figure(inputs_,preds_,labels_)
+                writer_train.add_figure('Pred vs Target',fig,global_step)
+                writer_train.add_scalar('Loss',np.mean(loss_arr),global_step)
+                writer_train.add_scalar('Error',100-np.mean(acc_arr),global_step)
+                writer_train.add_scalar('Accuracy',np.mean(acc_arr),global_step)
         return global_step
     def valid(global_step):
         with torch.no_grad():
@@ -165,15 +174,16 @@ for layer in layers:
             # Print
             print(f"VALID: STEP {global_step:05d} / {total_step:05d} | LOSS {np.mean(loss_arr):.4f} | ACC {np.mean(acc_arr):.2f}%")
             # Tensorboard
-            p = np.random.randint(inputs.size(0))
-            inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
-            labels_ = classes[labels[p]]
-            preds_ = classes[preds[p]]
-            fig = make_figure(inputs_,preds_,labels_)
-            writer_val.add_figure('Pred vs Target',fig,global_step)
-            writer_val.add_scalar('Loss',np.mean(loss_arr),global_step)
-            writer_val.add_scalar('Error',100-np.mean(acc_arr),global_step)
-            writer_val.add_scalar('Accuracy',np.mean(acc_arr),global_step)
+            p = fn_diff_index(preds,labels)
+            if p is not None:
+                inputs_ = fn_tonumpy(fn_denorm(inputs[p]))
+                labels_ = classes[labels[p]]
+                preds_ = classes[preds[p]]
+                fig = make_figure(inputs_,preds_,labels_)
+                writer_val.add_figure('Pred vs Target',fig,global_step)
+                writer_val.add_scalar('Loss',np.mean(loss_arr),global_step)
+                writer_val.add_scalar('Error',100-np.mean(acc_arr),global_step)
+                writer_val.add_scalar('Accuracy',np.mean(acc_arr),global_step)
     def test():
         with torch.no_grad():
             net.eval()
@@ -205,8 +215,8 @@ for layer in layers:
         valid(global_step)
     total_time = time() - start_time
     test()
-    writer_train.add_scalar('Parameters',num_params)
-    writer_train.add_scalar('Train Time',total_time)
+    writer_train.add_text('Parameters',str(num_params))
+    writer_train.add_text('Train Time',str(datetime.timedelta(seconds=total_time)))
     writer_train.close()
     writer_val.close()
     writer_test.close()
