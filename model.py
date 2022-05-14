@@ -82,7 +82,7 @@ class ResNet(nn.Module):
         self.block = block
         self.num_blocks = num_blocks
         self.num_classes = num_classes
-        if len(num_blocks) == 4 or self.num_classes == 1000 :
+        if len(self.num_blocks) == 4 or self.num_classes == 1000 :
             self.inplanes = 64
             # ImageNet : 224x224x3 -> 112x112x64
             # Cifar-10 : 32x32x3 -> 16x16x64
@@ -154,7 +154,7 @@ class ResNet(nn.Module):
         return nn.Sequential(*blocks)
 
     def forward(self,x):
-        if self.num_classes == 1000:
+        if len(self.num_blocks) == 4 or self.num_classes == 1000:
             x = self.conv1(x)
             x = self.bn1(x)
             x = self.relu(x)

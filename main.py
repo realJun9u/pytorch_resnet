@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import torch
+from time import time
 from torch.utils.data import random_split
 from torchvision import datasets
 from torchvision import transforms
@@ -195,14 +196,17 @@ for layer in layers:
             writer_test.add_scalar('Error',100-np.mean(acc_arr))
             writer_test.add_scalar('Accuracy',np.mean(acc_arr))
 
-    start_epoch=0
+    # start_epoch=0
     global_step = 0
     total_step = num_epoch * num_batch_train # 64064
+    start_time = time()
     for epoch in range(1,num_epoch+1):
         global_step = train(global_step)
         valid(global_step)
+    total_time = time() - start_time
     test()
     writer_train.add_scalar('Parameters',num_params)
+    writer_train.add_scalar('Train Time',total_time)
     writer_train.close()
     writer_val.close()
     writer_test.close()
