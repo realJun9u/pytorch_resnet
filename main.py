@@ -2,7 +2,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
-from sympy import total_degree
 import torch
 from time import time
 import datetime
@@ -20,15 +19,16 @@ parser.add_argument('--layers',choices=['18','34','50','101','152','20','32','44
 parser.add_argument('--data',choices=['imagenet','cifar10'],default='cifar10')
 parser.add_argument('--lr',type=float,default=0.1,help='')
 parser.add_argument('--batch_size',type=int,default=128,help='')
+parser.add_argument('--num_workers',type=int,default=4,help='')
 args = parser.parse_args()
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 lr = args.lr
 batch_size = args.batch_size
+num_workers = args.num_workers
 train_size = 45000 # 45k / 5k
 val_size = 5000
 num_iteration = 64000
-num_workers = 4
 root_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(root_dir,'data')
 
