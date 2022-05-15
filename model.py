@@ -2,29 +2,26 @@ import os
 import torch
 from torch import nn
 
-class BasicBlock(nn.Module): # 얕은 구조에서 사용. Resnet 18, 34
-    mul = 1 # Block 내에서 출력 채널 수 증가 X
+class BasicBlock(nn.Module):
+    mul = 1
     def __init__(self,in_ch,out_ch,stride=1):
         super(BasicBlock,self).__init__()
-        # stride를 통해 이미지 크기 조정
-        # 한 층의 첫 번째 블록의 시작에서 다운 샘플 (첫 번째 층 제외)
         self.conv1 = nn.Conv2d(in_channels=in_ch,out_channels=out_ch,
                                kernel_size=(3,3),stride=stride,
                                padding=1)
         self.bn1 = nn.BatchNorm2d(num_features=out_ch)
         self.relu = nn.ReLU()
-        # 이미지 크기 유지, 채널 수 유지
         self.conv2 = nn.Conv2d(in_channels=out_ch,out_channels=out_ch,
                                kernel_size=(3,3),stride=1,
                                padding=1)
         self.bn2 = nn.BatchNorm2d(num_features=out_ch)
 
         self.shortcut = nn.Sequential()
-        if stride != 1: # stride가 1이 아니면 합 연산이 불가하므로 모양 맞추기
-            self.shortcut = nn.Sequential(nn.Conv2d(in_channels=in_ch,out_channels=out_ch,
-                                                    kernel_size=1,stride=stride),
-                                          nn.BatchNorm2d(num_features=out_ch))
-
+        if stride != 1:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_channels=in_ch,out_channels=out_ch,
+                          kernel_size=1,stride=stride),
+                nn.BatchNorm2d(num_features=out_ch))
 
     def forward(self,x):
         out = self.conv1(x)
